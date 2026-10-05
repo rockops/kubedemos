@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  APP_ENV: "production"
+  APP_COLOR: "blue"
+  app.properties: |
+    max.connections=100
+    timeout.ms=5000
+    feature.flags=audit,metrics
