@@ -20,13 +20,8 @@ metadata:
   name: public-reader-binding
   namespace: public
 subjects:
-- kind: ServiceAccount
-  name: public-sa
-  namespace: public
 - kind: User
   name: public-sa
-- kind: User
-  name: system:serviceaccount:public:public-sa
 roleRef:
   kind: Role
   name: public-reader
