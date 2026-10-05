@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: public-sa
+  namespace: public
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: public-reader
+  namespace: public
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "configmaps"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: public-reader-binding
+  namespace: public
+subjects:
+- kind: ServiceAccount
+  name: public-sa
+  namespace: public
+- kind: User
+  name: public-sa
+- kind: User
+  name: system:serviceaccount:public:public-sa
+roleRef:
+  kind: Role
+  name: public-reader
+  apiGroup: rbac.authorization.k8s.io
