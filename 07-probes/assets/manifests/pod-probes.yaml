@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-probes
+  labels:
+    app: probes-demo
+spec:
+  terminationGracePeriodSeconds: 1
+  containers:
+  - name: probe-demo
+    image: busybox:1.36
+    imagePullPolicy: IfNotPresent
+    command:
+    - /bin/sh
+    - -c
+    - |
+      touch /tmp/live
+      echo "Application started: /tmp/live created at $(date)"
+      exec sleep 3600
+    startupProbe:
+      exec:
+        command:
+        - cat
+        - /tmp/started
+      initialDelaySeconds: 2
+      periodSeconds: 2
+      failureThreshold: 60
+    readinessProbe:
+      exec:
+        command:
+        - cat
+        - /tmp/ready
+      initialDelaySeconds: 2
+      periodSeconds: 2
+      failureThreshold: 3
+    livenessProbe:
+      exec:
+        command:
+        - cat
+        - /tmp/live
+      initialDelaySeconds: 2
+      periodSeconds: 2
+      failureThreshold: 3
