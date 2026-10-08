@@ -1,0 +1,25 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: sidecar-injector-webhook
+webhooks:
+  - name: sidecar-injector.webhook-system.svc
+    rules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE"]
+        resources: ["pods"]
+        scope: "Namespaced"
+    clientConfig:
+      service:
+        name: admission-webhook
+        namespace: webhook-system
+        path: "/mutate"
+        port: 443
+      caBundle: __CA_BUNDLE__
+    admissionReviewVersions: ["v1"]
+    sideEffects: None
+    timeoutSeconds: 5
+    namespaceSelector:
+      matchLabels:
+        sidecar-injection: enabled

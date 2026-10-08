@@ -1,0 +1,25 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: replica-limit-webhook
+webhooks:
+  - name: replica-validator.webhook-system.svc
+    rules:
+      - apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["deployments"]
+        scope: "Namespaced"
+    clientConfig:
+      service:
+        name: admission-webhook
+        namespace: webhook-system
+        path: "/validate"
+        port: 443
+      caBundle: __CA_BUNDLE__
+    admissionReviewVersions: ["v1"]
+    sideEffects: None
+    timeoutSeconds: 5
+    namespaceSelector:
+      matchLabels:
+        sidecar-injection: enabled

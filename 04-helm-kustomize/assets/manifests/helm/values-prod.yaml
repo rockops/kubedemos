@@ -1,0 +1,2 @@
+# Production environment configuration
+replicaCount: 3

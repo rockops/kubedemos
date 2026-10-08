@@ -1,0 +1,171 @@
+#!/usr/bin/env python3
+"""
+Lightweight Kubernetes Admission Webhook Server.
+Provides:
+1. Mutating Admission Webhook (/mutate):
+   Injects a minimal heartbeat sidecar container into Pods in target namespaces.
+2. Validating Admission Webhook (/validate):
+   Rejects Deployments specifying more than 5 replicas in target namespaces.
+Uses only the Python standard library.
+"""
+
+import base64
+import json
+import ssl
+import sys
+from http.server import HTTPServer, BaseHTTPRequestHandler
+from urllib.parse import urlparse
+
+LISTEN_PORT = 8443
+CERT_FILE = "/etc/webhook/certs/tls.crt"
+KEY_FILE = "/etc/webhook/certs/tls.key"
+MAX_REPLICAS = 5
+
+SIDECAR_CONTAINER = {
+    "name": "sidecar-agent",
+    "image": "busybox",
+    "imagePullPolicy": "IfNotPresent",
+    "command": [
+        "sh",
+        "-c",
+        "while true; do echo \"[sidecar-agent] Heartbeat active at $(date)\"; sleep 5; done"
+    ]
+}
+
+
+class AdmissionWebhookHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        req_path = urlparse(self.path).path.rstrip("/")
+        if req_path == "/healthz":
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain")
+            self.end_headers()
+            self.wfile.write(b"OK")
+        else:
+            self.send_response(404)
+            self.end_headers()
+
+    def do_POST(self):
+        req_path = urlparse(self.path).path.rstrip("/")
+        if req_path not in ("/mutate", "/validate"):
+            self.send_response(404)
+            self.end_headers()
+            return
+
+        content_length = int(self.headers.get("Content-Length", 0))
+        post_data = self.rfile.read(content_length)
+
+        try:
+            admission_review = json.loads(post_data.decode("utf-8"))
+            api_version = admission_review.get("apiVersion", "admission.k8s.io/v1")
+            req = admission_review.get("request", {})
+            uid = req.get("uid", "")
+            namespace = req.get("namespace", "unknown")
+
+            if req_path == "/mutate":
+                self.handle_mutate(admission_review, api_version, req, uid, namespace)
+            elif req_path == "/validate":
+                self.handle_validate(admission_review, api_version, req, uid, namespace)
+
+        except Exception as e:
+            print(f"[ERROR] Failed to process admission review: {e}", file=sys.stderr, flush=True)
+            self.send_response(500)
+            self.end_headers()
+
+    def handle_mutate(self, admission_review, api_version, req, uid, namespace):
+        pod_name = req.get("name") or req.get("object", {}).get("metadata", {}).get("name", "unknown")
+        existing_containers = req.get("object", {}).get("spec", {}).get("containers", [])
+        already_injected = any(c.get("name") == SIDECAR_CONTAINER["name"] for c in existing_containers)
+
+        response_review = {
+            "apiVersion": api_version,
+            "kind": "AdmissionReview",
+            "response": {
+                "uid": uid,
+                "allowed": True
+            }
+        }
+
+        if not already_injected:
+            patch = [
+                {
+                    "op": "add",
+                    "path": "/spec/containers/-",
+                    "value": SIDECAR_CONTAINER
+                }
+            ]
+            patch_bytes = json.dumps(patch).encode("utf-8")
+            patch_b64 = base64.b64encode(patch_bytes).decode("utf-8")
+
+            response_review["response"]["patchType"] = "JSONPatch"
+            response_review["response"]["patch"] = patch_b64
+            print(f"[MUTATE] Injected sidecar into pod '{pod_name}' in namespace '{namespace}' (UID: {uid})", flush=True)
+        else:
+            print(f"[SKIP] Pod '{pod_name}' in namespace '{namespace}' already has sidecar (UID: {uid})", flush=True)
+
+        self.send_json_response(response_review)
+
+    def handle_validate(self, admission_review, api_version, req, uid, namespace):
+        obj = req.get("object", {})
+        deploy_name = req.get("name") or obj.get("metadata", {}).get("name", "unknown")
+        replicas = obj.get("spec", {}).get("replicas", 1)
+        if replicas is None:
+            replicas = 1
+
+        if replicas > MAX_REPLICAS:
+            print(f"[DENIED] Deployment '{deploy_name}' in '{namespace}' requested {replicas} replicas (max: {MAX_REPLICAS})", flush=True)
+            response_review = {
+                "apiVersion": api_version,
+                "kind": "AdmissionReview",
+                "response": {
+                    "uid": uid,
+                    "allowed": False,
+                    "status": {
+                        "code": 403,
+                        "message": f"Deployment violates replica quota: maximum allowed is {MAX_REPLICAS} replicas (requested: {replicas})"
+                    }
+                }
+            }
+        else:
+            print(f"[ALLOWED] Deployment '{deploy_name}' in '{namespace}' requested {replicas} replicas (<= {MAX_REPLICAS})", flush=True)
+            response_review = {
+                "apiVersion": api_version,
+                "kind": "AdmissionReview",
+                "response": {
+                    "uid": uid,
+                    "allowed": True,
+                    "status": {
+                        "code": 200,
+                        "message": "Deployment replica count within allowable limits"
+                    }
+                }
+            }
+
+        self.send_json_response(response_review)
+
+    def send_json_response(self, data):
+        resp_data = json.dumps(data).encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(resp_data)))
+        self.end_headers()
+        self.wfile.write(resp_data)
+
+    def log_message(self, format, *args):
+        print(f"[{self.log_date_time_string()}] {format % args}", flush=True)
+
+
+def main():
+    server_address = ("", LISTEN_PORT)
+    httpd = HTTPServer(server_address, AdmissionWebhookHandler)
+
+    ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+    ssl_context.load_cert_chain(certfile=CERT_FILE, keyfile=KEY_FILE)
+    httpd.socket = ssl_context.wrap_socket(httpd.socket, server_side=True)
+
+    print(f"Starting Admission Webhook Server on port {LISTEN_PORT} (HTTPS)...", flush=True)
+    httpd.serve_forever()
+
+
+if __name__ == "__main__":
+    main()

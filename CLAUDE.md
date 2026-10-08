@@ -193,10 +193,12 @@ test -f /root/cert.pem && stat -c "%a" /root/cert.key | grep -E "600|400"
 
 | Scenario Folder | Topic & Objectives | Backend | Key Manifests / Assets |
 |---|---|---|---|
-| `namespace/` | **Namespaces Isolation**: Resource scoping, name collision avoidance, separate images per namespace, lifecycle isolation. | `kubernetes-kubeadm-1node` | `assets/manifests/` (pod definitions in dev & prod) |
-| `service/` | **Services & Networking**: Direct Pod IP limits, ClusterIP creation, Endpoints/EndpointSlices, CoreDNS resolution, NodePort external access, Replica load balancing. | `kubernetes-kubeadm-1node` | `assets/manifests/` (`clusterip-service.yaml`, `nodeport-service.yaml`, `webapp-deployment.yaml`) |
-| `certificates/` | **Certificate Authentication & RBAC**: Generating X.509 client key/CSR, signing via Kubernetes CA, building custom kubeconfig contexts, namespace-scoped RBAC, access revocation. | `kubernetes-kubeadm-1node` | `assets/manifests/` (`namespaces.yaml`, `rbac.yaml`, `sample-pods.yaml`) |
-| `configmaps-secrets/` | **ConfigMaps & Secrets**: ConfigMap creation, environment variable injection (`valueFrom`, `envFrom`), volume mounts, Secret creation (`stringData`), Base64 encoding/decoding, secure consumption (`defaultMode: 0400`). | `kubernetes-kubeadm-1node` | `assets/manifests/` (`app-config.yaml`, `pod-configmap-env.yaml`, `pod-configmap-volume.yaml`, `db-secret.yaml`, `pod-secret-env-volume.yaml`) |
+| `01-basic/` | **Namespaces Isolation**: Resource scoping, name collision avoidance, separate images per namespace, lifecycle isolation. | `kubernetes-kubeadm-1node` | `assets/manifests/` (pod definitions in dev & prod) |
+| `02-configmaps-secrets/` | **ConfigMaps & Secrets**: ConfigMap creation, environment variable injection (`valueFrom`, `envFrom`), volume mounts, Secret creation (`stringData`), Base64 encoding/decoding, secure consumption (`defaultMode: 0400`). | `kubernetes-kubeadm-1node` | `assets/manifests/` (`app-config.yaml`, `pod-configmap-env.yaml`, `pod-configmap-volume.yaml`, `db-secret.yaml`, `pod-secret-env-volume.yaml`) |
+| `03-service/` | **Services & Networking**: Direct Pod IP limits, ClusterIP creation, Endpoints/EndpointSlices, CoreDNS resolution, NodePort external access, Replica load balancing. | `kubernetes-kubeadm-1node` | `assets/manifests/` (`clusterip-service.yaml`, `nodeport-service.yaml`, `webapp-deployment.yaml`) |
+| `04-helm-kustomize/` | **Helm vs Kustomize**: Template-driven packaging (Helm charts, values parameterization, release upgrades) vs overlay-driven customization (Kustomize base, strategic merge patches, client-side generation). | `kubernetes-kubeadm-1node` | `assets/manifests/` (`helm/` chart & values files, `kustomize/` base & prod overlay) |
+| `05-authorization/` | **Certificate Authentication & RBAC**: Generating X.509 client key/CSR, signing via Kubernetes CA, building custom kubeconfig contexts, namespace-scoped RBAC, access revocation. | `kubernetes-kubeadm-1node` | `assets/manifests/` (`namespaces.yaml`, `rbac.yaml`, `sample-pods.yaml`) |
+| `06-admission/` | **Kubernetes Admission Controllers (Mutating & Validating)**: In-cluster Python webhook server, dynamic RFC 6902 JSONPatch sidecar injection (5s heartbeat), validating webhook policy enforcement (blocking deployments > 5 replicas) in labeled namespaces. | `kubernetes-kubeadm-1node` | `assets/manifests/` (`injector.py`, `webhook-server.yaml`, `mutating-webhook.yaml`, `validating-webhook.yaml`, `sample-app.yaml`, `deployment-valid.yaml`, `deployment-invalid.yaml`, `setup-tls.sh`) |
 
 ---
 
@@ -224,6 +226,7 @@ mkdir -p kubedemos/<scenario-id>/assets/manifests
   - `nginx:alpine`, `nginx:1.24`, `nginx:1.25`
   - `busybox`, `curlimages/curl`, `python:alpine`
 - Include clear labels (`app`, `tier`, `role`) for selectors.
+- **Offline / Caching Compatibility**: Always set `imagePullPolicy: IfNotPresent` on all containers in Pod and Deployment manifests (and use `--image-pull-policy=IfNotPresent` on `kubectl run` commands) so offline runs leverage pre-cached images without attempting registry lookups.
 
 ### Step 4: Write Step Markdowns & Interactive Commands
 - Provide conceptual explanation before commands.
@@ -253,3 +256,5 @@ Before finalizing any scenario, verify:
 - [ ] Port exposure uses valid NodePort range (`30000-32767`) if NodePort is used.
 - [ ] Any HTTP links use `{{TRAFFIC_HOST1_<PORT>}}` macro.
 - [ ] Markdown headers use clean `#`, `###`, and `<br>` spacing for Killercoda's UI renderer.
+- [ ] All Pods, Deployments, and `kubectl run` commands specify `imagePullPolicy: IfNotPresent` (or `--image-pull-policy=IfNotPresent`) for offline compatibility.
+

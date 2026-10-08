@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oversized-app
+  labels:
+    app: oversized-app
+spec:
+  replicas: 8
+  selector:
+    matchLabels:
+      app: oversized-app
+  template:
+    metadata:
+      labels:
+        app: oversized-app
+    spec:
+      containers:
+        - name: web
+          image: nginx:alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80

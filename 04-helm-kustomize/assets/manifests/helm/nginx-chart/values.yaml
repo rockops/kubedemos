@@ -1,0 +1,8 @@
+# Default values for nginx-chart.
+# Default number of replicas for development:
+replicaCount: 1
+
+image:
+  repository: nginx
+  tag: "1.25"
+  pullPolicy: IfNotPresent

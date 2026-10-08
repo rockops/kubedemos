@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: valid-app
+  labels:
+    app: valid-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: valid-app
+  template:
+    metadata:
+      labels:
+        app: valid-app
+    spec:
+      containers:
+        - name: web
+          image: nginx:alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80

@@ -1,0 +1,37 @@
+{
+  "title": "Kubernetes Admission Controllers (Mutating & Validating)",
+  "description": "Deploy an in-cluster admission controller demonstrating both Mutating (sidecar injection) and Validating (replica limit enforcement) webhooks",
+  "details": {
+    "intro": {
+      "text": "intro.md",
+      "background": "background.sh"
+    },
+    "steps": [
+      {
+        "title": "Mutating Admission Controller (Sidecar Injection)",
+        "text": "step1.md",
+        "verify": "step1_verify.sh"
+      },
+      {
+        "title": "Validating Admission Controller (Replica Limit Policy)",
+        "text": "step2.md",
+        "verify": "step2_verify.sh"
+      }
+    ],
+    "finish": {
+      "text": "finish.md"
+    },
+    "assets": {
+      "host01": [
+        {
+          "file": "manifests/*",
+          "target": "/root",
+          "chmod": "+w"
+        }
+      ]
+    }
+  },
+  "backend": {
+    "imageid": "kubernetes-kubeadm-1node"
+  }
+}
