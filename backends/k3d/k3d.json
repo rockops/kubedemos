@@ -1,0 +1,30 @@
+{
+  "noProxy": [
+    "10.244.0.0/16",
+    "10.96.0.0/12",
+    "172.30.0.0/16",
+    "localhost",
+    "127.0.0.1",
+    "k8scp",
+    "cp"
+  ],
+  "nodes": [
+    {
+      "name": "controlplane",
+      "alias": "host01",
+      "imageid": "ghcr.io/rockops/rockdemo/ubuntu-systemd:24.04",
+      "cmd": "bash",
+      "ip": "172.30.1.2",
+      "docker": true,
+      "systemd": true,
+      "foreground": "scripts/foreground.sh",
+      "mount": [
+        {
+          "src": "/usr/local/share/ca-certificates",
+          "dest": "/usr/local/share/ca-certificates",
+          "ro": true
+        }
+      ]
+    }
+  ]
+}

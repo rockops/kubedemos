@@ -1,0 +1,32 @@
+{
+  "title": "Lightweight Kubernetes with k3d",
+  "description": "Deploy and verify a lightweight Kubernetes cluster inside Docker using k3d on Ubuntu",
+  "details": {
+    "intro": {
+      "text": "intro.md",
+      "foreground": "foreground.sh"
+    },
+    "steps": [
+      {
+        "title": "Inspect & Test the k3d Cluster",
+        "text": "step1.md",
+        "verify": "step1_verify.sh"
+      }
+    ],
+    "finish": {
+      "text": "finish.md"
+    },
+    "assets": {
+      "host01": [
+        {
+          "file": "manifests/*",
+          "target": "/root",
+          "chmod": "+w"
+        }
+      ]
+    }
+  },
+  "backendExtended": {
+    "path": "../backends/alpine/alpine.json"
+  }
+}

@@ -1,0 +1,38 @@
+apiVersion: kubeadm.k8s.io/v1beta4
+kind: ClusterConfiguration
+# PLACEHOLDER — the foreground script (startup.sh) rewrites this line at runtime
+# to the installed kubeadm binary's version (`kubeadm version -o short`), so the
+# Kubernetes version has ONE source of truth: KUBE_PKG_VERSION in the image
+# Dockerfile. kubeadm needs the field present (with --config it won't take a
+# --kubernetes-version flag, and omitting it makes kubeadm fetch the latest patch
+# from the internet — which would skew from the installed binary).
+kubernetesVersion: 0.0.0
+controlPlaneEndpoint: "k8scp:6443" #<-- Use the alias we put in /etc/hosts not the IP
+networking:
+  # Pod CIDR. Kept off 192.168.0.0/16 on purpose: that overlaps the typical home
+  # LAN (192.168.0.0/24), which makes Cilium route replies to the host back into
+  # cilium_host instead of out eth0 — breaking access to published ports from the
+  # host/LAN. 10.244.0.0/16 is the conventional kubeadm pod CIDR and collides with
+  # neither the rockdemo docker network (172.30.0.0/16) nor a 192.168.x LAN.
+  # MUST match cluster-pool-ipv4-cidr in cilium-cni.yaml.
+  podSubnet: 10.244.0.0/16
+---
+# kube-proxy runs in this node's own network namespace, which can't write the
+# global net/netfilter/nf_conntrack_max sysctl (permission denied, even when
+# privileged). maxPerCore/min: 0 tell kube-proxy not to touch it — the standard
+# setting for kubeadm inside a container (same as kind/k3d use).
+apiVersion: kubeproxy.config.k8s.io/v1alpha1
+kind: KubeProxyConfiguration
+conntrack:
+  maxPerCore: 0
+  min: 0
+---
+# SystemVerification preflight can't pass in a container: it runs `modprobe
+# configs` to read the kernel build config, but this host kernel has
+# CONFIG_IKCONFIG unset (no module, no /proc/config.gz). Ignoring it here keeps
+# the `kubeadm init` command stock — no --ignore-preflight-errors flag needed.
+apiVersion: kubeadm.k8s.io/v1beta4
+kind: InitConfiguration
+nodeRegistration:
+  ignorePreflightErrors:
+    - SystemVerification  
