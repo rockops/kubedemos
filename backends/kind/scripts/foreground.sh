@@ -11,18 +11,20 @@ echo 'Waiting for Docker to be ready...'
 until docker info >/dev/null 2>&1; do sleep 1; done
 echo 'Docker is ready.'
 
+ARCH="${TARGETARCH:-$(dpkg --print-architecture)}"
+
 echo "=================================================="
 echo "         Install tools...              "
 echo "=================================================="
 echo ""
-test -f kubectl || wget "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+test -f kubectl || wget "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/${ARCH}/kubectl"
 chmod +x kubectl
 cp kubectl /usr/local/bin/kubectl
 
 test -f helm || {
-    wget https://get.helm.sh/helm-v4.3.0-linux-amd64.tar.gz
-    tar -zxf helm-v4.3.0-linux-amd64.tar.gz
-    mv linux-amd64/helm .
+    wget https://get.helm.sh/helm-v4.3.0-linux-${ARCH}.tar.gz
+    tar -zxf helm-v4.3.0-linux-${ARCH}.tar.gz
+    mv linux-${ARCH}/helm .
     chmod +x helm
 }
 
@@ -34,9 +36,9 @@ echo "         Initializing kind Cluster...             "
 echo "=================================================="
 echo ""
 
-test -f kind-linux-amd64 || wget https://github.com/kubernetes-sigs/kind/releases/download/v0.33.0/kind-linux-amd64
-chmod +x kind-linux-amd64
-cp kind-linux-amd64 /usr/local/bin/kind
+test -f kind-linux-${ARCH} || wget https://github.com/kubernetes-sigs/kind/releases/download/v0.33.0/kind-linux-${ARCH}
+chmod +x kind-linux-${ARCH}
+cp kind-linux-${ARCH} /usr/local/bin/kind
 
 mkdir -p ~/.kube
 if kind get clusters 2>/dev/null | grep -qw rockdemo; then

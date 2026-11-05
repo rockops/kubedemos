@@ -4,22 +4,19 @@ In this step, you will deploy the in-cluster admission webhook server and config
 
 ---
 
-### Step 1.1: Verify the Background TLS Secret
+### Step 1.1: Initialize TLS & Verify CA Bundle
 
-Confirm that background initialization has generated the TLS secret in the `webhook-system` namespace:
+Admission webhooks require TLS. Run the setup script to generate the certificates, create the `webhook-tls` secret, and inject the base64 CA bundle into the webhook manifests:
 
-```bash
-kubectl get secret webhook-tls -n webhook-system
-```{{exec}}
-
-<details><summary>Troubleshooting Tip</summary>
-
-If the secret is not yet visible, wait a few seconds or run:
 ```bash
 bash /root/manifests/setup-tls.sh
 ```{{exec}}
 
-</details>
+Confirm that the TLS secret exists in the `webhook-system` namespace:
+
+```bash
+kubectl get secret webhook-tls -n webhook-system
+```{{exec}}
 
 ---
 
@@ -94,6 +91,12 @@ Label the `prod` namespace for sidecar injection:
 ```bash
 kubectl label ns prod sidecar-injection=enabled
 ```{{exec}}
+
+Verify the namespaces:
+```bash
+kubectl get ns dev prod --show-labels
+```{{exec}}
+
 
 Open and inspect the sample application manifest:
 

@@ -59,7 +59,7 @@ CA_BUNDLE=$(base64 -w0 < "${CERT_DIR}/ca.crt" 2>/dev/null || base64 < "${CERT_DI
 
 for TARGET in /root/manifests/mutating-webhook.yaml /root/manifests/validating-webhook.yaml /root/manifests/webhook-config.yaml; do
   if [ -f "$TARGET" ]; then
-    sed -i "s|__CA_BUNDLE__|$CA_BUNDLE|g" "$TARGET"
+    sed "s|caBundle:.*|caBundle: $CA_BUNDLE|g" "$TARGET" > /tmp/target.tmp && cat /tmp/target.tmp > "$TARGET" && rm -f /tmp/target.tmp
   fi
 done
 

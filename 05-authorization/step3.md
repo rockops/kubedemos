@@ -20,7 +20,7 @@ Set the cluster configuration and embed the CA certificate:
 
 ```
 APISERVER=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
-kubectl config --kubeconfig=/root/public-sa.kubeconfig set-cluster kubernetes \
+kubectl config --kubeconfig=/tmp/public-sa.kubeconfig set-cluster kubernetes \
   --certificate-authority=/etc/kubernetes/pki/ca.crt \
   --embed-certs=true \
   --server="${APISERVER}"
@@ -29,7 +29,7 @@ kubectl config --kubeconfig=/root/public-sa.kubeconfig set-cluster kubernetes \
 Set client credentials and embed the newly generated certificate and private key:
 
 ```
-kubectl config --kubeconfig=/root/public-sa.kubeconfig set-credentials public-sa \
+kubectl config --kubeconfig=/tmp/public-sa.kubeconfig set-credentials public-sa \
   --client-certificate=/root/public-sa.crt \
   --client-key=/root/public-sa.key \
   --embed-certs=true
@@ -38,12 +38,12 @@ kubectl config --kubeconfig=/root/public-sa.kubeconfig set-credentials public-sa
 Create and switch to the context:
 
 ```
-kubectl config --kubeconfig=/root/public-sa.kubeconfig set-context public-sa-context \
+kubectl config --kubeconfig=/tmp/public-sa.kubeconfig set-context public-sa-context \
   --cluster=kubernetes \
   --user=public-sa \
   --namespace=public
 
-kubectl config --kubeconfig=/root/public-sa.kubeconfig use-context public-sa-context
+kubectl config --kubeconfig=/tmp/public-sa.kubeconfig use-context public-sa-context
 ```{{exec}}
 
 <br>
@@ -53,7 +53,7 @@ kubectl config --kubeconfig=/root/public-sa.kubeconfig use-context public-sa-con
 Authenticate using the new kubeconfig and list pods in the `public` namespace:
 
 ```
-kubectl get pods --kubeconfig=/root/public-sa.kubeconfig -n public
+kubectl get pods --kubeconfig=/tmp/public-sa.kubeconfig -n public
 ```{{exec}}
 
 > **Result:** This command succeeds! The user `public-sa` is authorized by the `public-reader` role.
@@ -65,7 +65,7 @@ kubectl get pods --kubeconfig=/root/public-sa.kubeconfig -n public
 Now attempt to list pods in the `private` namespace:
 
 ```
-kubectl get pods --kubeconfig=/root/public-sa.kubeconfig -n private
+kubectl get pods --kubeconfig=/tmp/public-sa.kubeconfig -n private
 ```{{exec}}
 
 > **Result:** This command fails with:
@@ -78,6 +78,6 @@ kubectl get pods --kubeconfig=/root/public-sa.kubeconfig -n private
 Check the user's effective permissions across both namespaces:
 
 ```
-kubectl auth can-i list pods -n public --kubeconfig=/root/public-sa.kubeconfig
-kubectl auth can-i list pods -n private --kubeconfig=/root/public-sa.kubeconfig
+kubectl auth can-i list pods -n public --kubeconfig=/tmp/public-sa.kubeconfig
+kubectl auth can-i list pods -n private --kubeconfig=/tmp/public-sa.kubeconfig
 ```{{exec}}

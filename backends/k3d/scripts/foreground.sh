@@ -15,14 +15,17 @@ echo "=================================================="
 echo "         Install tools...              "
 echo "=================================================="
 echo ""
-test -f kubectl || wget "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+
+ARCH="${TARGETARCH:-$(dpkg --print-architecture)}"
+
+test -f kubectl || wget "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/${ARCH}/kubectl"
 chmod +x kubectl
 cp kubectl /usr/local/bin/kubectl
 
 test -f helm || {
-    wget https://get.helm.sh/helm-v4.3.0-linux-amd64.tar.gz
-    tar -zxf helm-v4.3.0-linux-amd64.tar.gz
-    mv linux-amd64/helm .
+    wget https://get.helm.sh/helm-v4.3.0-linux-${ARCH}.tar.gz
+    tar -zxf helm-v4.3.0-linux-${ARCH}.tar.gz
+    mv linux-${ARCH}/helm .
     chmod +x helm
 }
 
@@ -34,9 +37,9 @@ echo "         Initializing k3d Cluster...              "
 echo "=================================================="
 echo ""
 
-test -f k3d-linux-amd64 || wget https://github.com/k3d-io/k3d/releases/download/v5.9.0/k3d-linux-amd64
-chmod +x k3d-linux-amd64
-cp k3d-linux-amd64 /usr/local/bin/k3d
+test -f k3d-linux-${ARCH} || wget https://github.com/k3d-io/k3d/releases/download/v5.9.0/k3d-linux-${ARCH}
+chmod +x k3d-linux-${ARCH}
+cp k3d-linux-${ARCH} /usr/local/bin/k3d
 
 mkdir -p ~/.kube
 if k3d cluster list | grep -qw rockdemo; then

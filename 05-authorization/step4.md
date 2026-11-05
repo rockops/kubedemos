@@ -28,7 +28,7 @@ kubectl get csr public-sa-csr
 Now, attempt to access the `public` namespace again using the client certificate in our kubeconfig:
 
 ```
-kubectl get pods --kubeconfig=/root/public-sa.kubeconfig -n public
+kubectl get pods --kubeconfig=/tmp/public-sa.kubeconfig -n public
 ```{{exec}}
 
 > **Observation:** The request **still succeeds**! The API server validates the client certificate against the CA directly without checking for the existence of the CSR.
@@ -58,7 +58,7 @@ kubectl get rolebinding -n public
 Now attempt to query the `public` namespace using the client certificate again:
 
 ```
-kubectl get pods --kubeconfig=/root/public-sa.kubeconfig -n public
+kubectl get pods --kubeconfig=/tmp/public-sa.kubeconfig -n public
 ```{{exec}}
 
 > **Result:** Access is now **forbidden**!
@@ -73,7 +73,7 @@ kubectl get pods --kubeconfig=/root/public-sa.kubeconfig -n public
 Check the user's permission in the `public` namespace:
 
 ```
-kubectl auth can-i list pods -n public --kubeconfig=/root/public-sa.kubeconfig
+kubectl auth can-i list pods -n public --kubeconfig=/tmp/public-sa.kubeconfig
 ```{{exec}}
 
 > **Result:** `no`
