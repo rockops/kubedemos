@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web-portal
+  labels:
+    app: web-portal
+spec:
+  initContainers:
+    - name: wait-for-db
+      image: busybox:1.36
+      imagePullPolicy: IfNotPresent
+      command:
+        - sh
+        - -c
+        - |
+          echo "Init container wait-for-db started."
+          until nc -z -w 2 db-service 3306; do
+            echo "Waiting for db-service on port 3306..."
+            sleep 2
+          done
+          echo "Database service detected! Init container completed successfully."
+  containers:
+    - name: web-app
+      image: nginx:alpine
+      imagePullPolicy: IfNotPresent
+      ports:
+        - containerPort: 80
+

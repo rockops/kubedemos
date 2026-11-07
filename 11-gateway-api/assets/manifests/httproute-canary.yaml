@@ -1,0 +1,42 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: web-routes
+  namespace: default
+spec:
+  parentRefs:
+  - name: my-gateway
+  rules:
+  # Path rule 1: /store with canary split (80% v1, 20% v2)
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /store
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplaceFullPath
+          replaceFullPath: /
+    backendRefs:
+    - name: store-v1
+      port: 80
+      weight: 80
+    - name: store-v2
+      port: 80
+      weight: 20
+  # Path rule 2: /blog routed to blog-v1
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /blog
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplaceFullPath
+          replaceFullPath: /
+    backendRefs:
+    - name: blog-v1
+      port: 80
+

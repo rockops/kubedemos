@@ -1,0 +1,31 @@
+{
+  "title": "Local Kubernetes with kind",
+  "description": "Deploy and verify a local Kubernetes cluster inside Docker using kind on Ubuntu",
+  "details": {
+    "intro": {
+      "text": "intro.md"
+    },
+    "steps": [
+      {
+        "title": "Inspect & Test the kind Cluster",
+        "text": "step1.md",
+        "verify": "step1_verify.sh"
+      }
+    ],
+    "finish": {
+      "text": "finish.md"
+    },
+    "assets": {
+      "host01": [
+        {
+          "file": "manifests/*",
+          "target": "/root",
+          "chmod": "+w"
+        }
+      ]
+    }
+  },
+  "backendExtended": {
+    "path": "../backends/kind/kind.json"
+  }
+}

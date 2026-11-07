@@ -1,0 +1,21 @@
+{
+  "title": "Alpine node",
+  "description": "Deploy an Alpine node and test",
+  "details": {
+    "intro": {
+      "text": "intro.md"
+    },
+    "steps": [
+      {
+        "title": "Inspect & Test the k3d Cluster",
+        "text": "step1.md"
+      }
+    ],
+    "finish": {
+      "text": "finish.md"
+    }
+  },
+  "backendExtended": {
+    "path": "../backends/kubernetes-flannel/kubernetes-flannel.json"
+  }
+}
