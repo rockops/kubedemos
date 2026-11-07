@@ -51,7 +51,10 @@
       "alias": "monitor",
       "tabname": "Pod Monitor",
       "color": "yellow",
-      "foreground" : "until [ -f .kube/config ]; do sleep 1; done; clear; watch kubectl get pods"
+      "foreground": "until [ -f .kube/config ]; do sleep 1; done; clear; watch kubectl get pods"
     }
-  ]
+  ],
+  "backendExtended": {
+    "path": "../backends/kubernetes-flannel/kubernetes-flannel.json"
+  }
 }

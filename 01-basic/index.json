@@ -38,7 +38,7 @@
   "backend": {
     "imageid": "kubernetes-kubeadm-1node"
   },
-  "_backendExtended": {
+  "backendExtended": {
     "path": "../backends/kubernetes-flannel/kubernetes-flannel.json"
   }
 }

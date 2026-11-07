@@ -55,6 +55,8 @@
       "split": "down",
       "foreground": "until [ -f .kube/config ]; do sleep 1; done; clear; watch -n 1 'kubectl get pods'"
     }
-  ]
+  ],
+  "backendExtended": {
+    "path": "../backends/kubernetes-flannel/kubernetes-flannel.json"
+  }
 }
-

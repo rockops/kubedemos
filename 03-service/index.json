@@ -1,9 +1,10 @@
 {
   "title": "Kubernetes Services & Networking",
-  "description": "Learn Pod networking, ClusterIP, NodePort services, and load balancing across deployment replicas",
+  "description": "Learn Pod networking, ClusterIP, NodePort, LoadBalancer services, and multi-replica load balancing",
   "details": {
     "intro": {
-      "text": "intro.md"
+      "text": "intro.md",
+      "background": "background.sh"
     },
     "steps": [
       {
@@ -25,6 +26,11 @@
         "title": "Load Balancing Across Deployment Replicas",
         "text": "step4.md",
         "verify": "step4_verify.sh"
+      },
+      {
+        "title": "Expose Service via LoadBalancer",
+        "text": "step5.md",
+        "verify": "step5_verify.sh"
       }
     ],
     "finish": {
@@ -42,5 +48,8 @@
   },
   "backend": {
     "imageid": "kubernetes-kubeadm-1node"
+  },
+  "backendExtended": {
+    "path": "../backends/kubernetes-flannel/kubernetes-flannel.json"
   }
 }
